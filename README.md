@@ -14,6 +14,10 @@ docker-compose up -d
 docker-compose exec db sh
 ```
 
+```
+docker-compose exec app go run main.go
+```
+
 ### stop
 ```
 docker-compose stop
