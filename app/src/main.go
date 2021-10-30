@@ -6,6 +6,7 @@ import (
   "time"
 	"log"
 	"net/http"
+  "io/ioutil"
 
 	"github.com/gorilla/mux"
   "github.com/jinzhu/gorm"
@@ -71,6 +72,30 @@ func createNewUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 }
 
+func updateItem(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    userId := vars["userId"]
+    reqBody, _ := ioutil.ReadAll(r.Body)
+
+    db := sqlConnect()
+    var updateItem User
+    if err := json.Unmarshal(reqBody, &updateItem); err != nil {
+        log.Fatal(err)
+    }
+    db.Model(&updateItem).Where("id = ?", userId).Updates(
+        map[string]interface{}{
+            "name":     updateItem.Name,
+            "email":    updateItem.Email,
+        })
+    responseBody, err := json.Marshal(updateItem)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(responseBody)
+}
+
 func handleRequests() {
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -78,6 +103,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/users", createNewUser).Methods("POST")
   myRouter.HandleFunc("/users", returnAllUsers)
+	myRouter.HandleFunc("/users/{userId}", updateItem).Methods("PUT")
   myRouter.HandleFunc("/users/{userId}", returnUser)
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }

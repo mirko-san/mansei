@@ -32,4 +32,5 @@ docker-compose down
 ```
 # add user
 curl -X POST http:/localhost:10000/users
+curl -X PUT http:/localhost:10000/users/0 -d '{ "name": "Put test name", "email": "Put test email"}'
 ```
