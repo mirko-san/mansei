@@ -46,6 +46,23 @@ func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(responseBody)
 }
 
+func returnUser(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    userId := vars["userId"]
+
+    db := sqlConnect()
+    var user User
+    db.First(&user, userId)
+    defer db.Close()
+    responseBody, err := json.Marshal(user)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(responseBody)
+}
+
 func createNewUser(w http.ResponseWriter, r *http.Request) {
 	db := sqlConnect()
 	name := "name"
@@ -59,8 +76,9 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// replace http.HandleFunc with myRouter.HandleFunc
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/users", returnAllUsers)
-	myRouter.HandleFunc("/user", createNewUser).Methods("POST")
+	myRouter.HandleFunc("/users", createNewUser).Methods("POST")
+  myRouter.HandleFunc("/users", returnAllUsers)
+  myRouter.HandleFunc("/users/{userId}", returnUser)
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 

@@ -31,5 +31,5 @@ docker-compose down
 ### use app
 ```
 # add user
-curl -X POST http:/localhost:10000/user
+curl -X POST http:/localhost:10000/users
 ```
