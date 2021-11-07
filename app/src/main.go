@@ -1,29 +1,29 @@
 package main
 
 import (
-  "fmt"
 	"encoding/json"
-  "time"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-  "io/ioutil"
+	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-  "github.com/jinzhu/gorm"
-  _ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
 )
 
 type User struct {
-  gorm.Model
-  Name string
-  Email string
+	gorm.Model
+	Name  string
+	Email string
 }
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
-  db := sqlConnect()
+	db := sqlConnect()
 	db.AutoMigrate(&User{})
-  defer db.Close()
+	defer db.Close()
 
 	handleRequests()
 }
@@ -40,7 +40,7 @@ func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	responseBody, err := json.Marshal(users)
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -48,52 +48,52 @@ func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnUser(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    userId := vars["userId"]
+	vars := mux.Vars(r)
+	userId := vars["userId"]
 
-    db := sqlConnect()
-    var user User
-    db.First(&user, userId)
-    defer db.Close()
-    responseBody, err := json.Marshal(user)
-    if err != nil {
-        log.Fatal(err)
-    }
+	db := sqlConnect()
+	var user User
+	db.First(&user, userId)
+	defer db.Close()
+	responseBody, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(responseBody)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func createNewUser(w http.ResponseWriter, r *http.Request) {
 	db := sqlConnect()
 	name := "name"
-	email :=  "email"
+	email := "email"
 	db.Create(&User{Name: name, Email: email})
 	defer db.Close()
 }
 
 func updateItem(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    userId := vars["userId"]
-    reqBody, _ := ioutil.ReadAll(r.Body)
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	reqBody, _ := ioutil.ReadAll(r.Body)
 
-    db := sqlConnect()
-    var updateItem User
-    if err := json.Unmarshal(reqBody, &updateItem); err != nil {
-        log.Fatal(err)
-    }
-    db.Model(&updateItem).Where("id = ?", userId).Updates(
-        map[string]interface{}{
-            "name":     updateItem.Name,
-            "email":    updateItem.Email,
-        })
-    responseBody, err := json.Marshal(updateItem)
-    if err != nil {
-        log.Fatal(err)
-    }
+	db := sqlConnect()
+	var updateItem User
+	if err := json.Unmarshal(reqBody, &updateItem); err != nil {
+		log.Fatal(err)
+	}
+	db.Model(&updateItem).Where("id = ?", userId).Updates(
+		map[string]interface{}{
+			"name":  updateItem.Name,
+			"email": updateItem.Email,
+		})
+	responseBody, err := json.Marshal(updateItem)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(responseBody)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseBody)
 }
 
 func handleRequests() {
@@ -102,41 +102,41 @@ func handleRequests() {
 	// replace http.HandleFunc with myRouter.HandleFunc
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/users", createNewUser).Methods("POST")
-  myRouter.HandleFunc("/users", returnAllUsers)
+	myRouter.HandleFunc("/users", returnAllUsers)
 	myRouter.HandleFunc("/users/{userId}", updateItem).Methods("PUT")
-  myRouter.HandleFunc("/users/{userId}", returnUser)
+	myRouter.HandleFunc("/users/{userId}", returnUser)
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
 
 func sqlConnect() (database *gorm.DB) {
-  DBMS := "mysql"
-  USER := "root"
-  PASS := "root"
-  PROTOCOL := "tcp(db:3306)"
-  DBNAME := "test"
+	DBMS := "mysql"
+	USER := "root"
+	PASS := "root"
+	PROTOCOL := "tcp(db:3306)"
+	DBNAME := "test"
 
-  CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
+	CONNECT := USER + ":" + PASS + "@" + PROTOCOL + "/" + DBNAME + "?charset=utf8&parseTime=true&loc=Asia%2FTokyo"
 
-  count := 0
-  db, err := gorm.Open(DBMS, CONNECT)
-  if err != nil {
-    for {
-      if err == nil {
-        fmt.Println("")
-        break
-      }
-      fmt.Print(".")
-      time.Sleep(time.Second)
-      count++
-      if count > 10 {
-        fmt.Println("")
-        fmt.Println("DB接続失敗")
-        panic(err)
-      }
-      db, err = gorm.Open(DBMS, CONNECT)
-    }
-  }
-  fmt.Println("DB接続成功")
+	count := 0
+	db, err := gorm.Open(DBMS, CONNECT)
+	if err != nil {
+		for {
+			if err == nil {
+				fmt.Println("")
+				break
+			}
+			fmt.Print(".")
+			time.Sleep(time.Second)
+			count++
+			if count > 10 {
+				fmt.Println("")
+				fmt.Println("DB接続失敗")
+				panic(err)
+			}
+			db, err = gorm.Open(DBMS, CONNECT)
+		}
+	}
+	fmt.Println("DB接続成功")
 
-  return db
+	return db
 }
