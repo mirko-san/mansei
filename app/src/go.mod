@@ -1,4 +1,4 @@
-module github.com/mirko-san/mansei
+module github.com/mirko-san/mansei/app/src
 
 go 1.17
 

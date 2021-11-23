@@ -31,6 +31,6 @@ docker-compose down
 ### use app
 ```
 # add user
-curl -X POST http:/localhost:10000/users
+curl -X POST http:/localhost:10000/users -d '{ "name": "Create test name", "email": "Create test email"}'
 curl -X PUT http:/localhost:10000/users/0 -d '{ "name": "Put test name", "email": "Put test email"}'
 ```
