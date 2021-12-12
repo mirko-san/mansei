@@ -99,3 +99,12 @@ func UpdateUser(db *gorm.DB, userId string, user *User) *gorm.DB {
 	}
 	return result
 }
+
+func DeleteUser(db *gorm.DB, userId string) *gorm.DB {
+	var user User
+	result := db.Where("id = ?", userId).Delete(&user)
+	if result.Error != nil {
+		log.Fatal(result.Error)
+	}
+	return result
+}

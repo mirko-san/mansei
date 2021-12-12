@@ -87,6 +87,21 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(responseBody)
 }
 
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+
+	db := utils.DB()
+	result := utils.DeleteUser(db, userId)
+	responseBody, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseBody)
+}
+
 func handleRequests() {
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -95,6 +110,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/users", createUser).Methods("POST")
 	myRouter.HandleFunc("/users", returnAllUsers)
 	myRouter.HandleFunc("/users/{userId}", updateUser).Methods("PUT")
+	myRouter.HandleFunc("/users/{userId}", deleteUser).Methods("DELETE")
 	myRouter.HandleFunc("/users/{userId}", returnUser)
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
