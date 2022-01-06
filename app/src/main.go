@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/mirko-san/mansei/app/src/middleware"
 	"github.com/mirko-san/mansei/app/src/utils"
 )
 
@@ -107,10 +108,10 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// replace http.HandleFunc with myRouter.HandleFunc
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/users", createUser).Methods("POST")
-	myRouter.HandleFunc("/users", returnAllUsers)
-	myRouter.HandleFunc("/users/{userId}", updateUser).Methods("PUT")
-	myRouter.HandleFunc("/users/{userId}", deleteUser).Methods("DELETE")
-	myRouter.HandleFunc("/users/{userId}", returnUser)
+	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(createUser))).Methods("POST")
+	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(returnAllUsers)))
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(updateUser))).Methods("PUT")
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(deleteUser))).Methods("DELETE")
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(returnUser)))
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
