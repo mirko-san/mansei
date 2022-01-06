@@ -34,3 +34,15 @@ docker-compose down
 curl -X POST http:/localhost:10000/users -d '{ "name": "Create test name", "email": "Create test email"}'
 curl -X PUT http:/localhost:10000/users/0 -d '{ "name": "Put test name", "email": "Put test email"}'
 ```
+
+get ACCESS_TOKEN
+```
+curl http:/localhost:10000/auth
+```
+
+use Bearer token
+```
+curl --request GET \
+--url http:/localhost:10000/users \
+--header 'authorization: Bearer ACCESS_TOKEN'
+```
