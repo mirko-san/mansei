@@ -7,6 +7,8 @@ services:
       - 10000:10000
     volumes:
       - ./app/src:/go/src/app/src
+    env_file:
+      - .env
   db:
     image: mysql:5.7
     build: ./db/

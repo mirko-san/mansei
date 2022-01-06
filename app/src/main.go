@@ -8,7 +8,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/mirko-san/mansei/app/src/middleware"
 	"github.com/mirko-san/mansei/app/src/utils"
+	"github.com/mirko-san/mansei/app/src/utils/auth"
+
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
 func main() {
@@ -23,6 +28,15 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnAllUsers(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+
+	claims := token.CustomClaims.(*middleware.CustomClaims)
+	if !claims.HasScope("all") {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"Insufficient scope."}`))
+		return
+	}
+
 	db := utils.DB()
 	result := utils.GetAllUsers(db)
 	responseBody, err := json.Marshal(result)
@@ -35,6 +49,15 @@ func returnAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+
+	claims := token.CustomClaims.(*middleware.CustomClaims)
+	if !claims.HasScope("all") {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"Insufficient scope."}`))
+		return
+	}
+
 	vars := mux.Vars(r)
 	userId := vars["userId"]
 
@@ -50,6 +73,15 @@ func returnUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func createUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+
+	claims := token.CustomClaims.(*middleware.CustomClaims)
+	if !claims.HasScope("all") {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"Insufficient scope."}`))
+		return
+	}
+
 	body, _ := ioutil.ReadAll(r.Body)
 	var user utils.User
 	if err := json.Unmarshal(body, &user); err != nil {
@@ -68,6 +100,15 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+
+	claims := token.CustomClaims.(*middleware.CustomClaims)
+	if !claims.HasScope("all") {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"Insufficient scope."}`))
+		return
+	}
+
 	vars := mux.Vars(r)
 	userId := vars["userId"]
 	body, _ := ioutil.ReadAll(r.Body)
@@ -88,6 +129,15 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+
+	claims := token.CustomClaims.(*middleware.CustomClaims)
+	if !claims.HasScope("all") {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"message":"Insufficient scope."}`))
+		return
+	}
+
 	vars := mux.Vars(r)
 	userId := vars["userId"]
 
@@ -107,10 +157,11 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// replace http.HandleFunc with myRouter.HandleFunc
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/users", createUser).Methods("POST")
-	myRouter.HandleFunc("/users", returnAllUsers)
-	myRouter.HandleFunc("/users/{userId}", updateUser).Methods("PUT")
-	myRouter.HandleFunc("/users/{userId}", deleteUser).Methods("DELETE")
-	myRouter.HandleFunc("/users/{userId}", returnUser)
+	myRouter.Handle("/auth", auth.GetToken)
+	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(createUser))).Methods("POST")
+	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(returnAllUsers)))
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(updateUser))).Methods("PUT")
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(deleteUser))).Methods("DELETE")
+	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(returnUser)))
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
