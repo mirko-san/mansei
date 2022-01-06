@@ -46,6 +46,9 @@ func DBSetup() {
 			db, err = gorm.Open(DBMS, CONNECT)
 		}
 	}
+	gormDB.AutoMigrate(
+		User{},
+	)
 	fmt.Println("DB接続成功")
 
 	db = gormDB
