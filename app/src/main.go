@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mirko-san/mansei/app/src/middleware"
 	"github.com/mirko-san/mansei/app/src/utils"
+	"github.com/mirko-san/mansei/app/src/utils/auth"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
@@ -156,6 +157,7 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// replace http.HandleFunc with myRouter.HandleFunc
 	myRouter.HandleFunc("/", homePage)
+	myRouter.Handle("/auth", auth.GetToken)
 	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(createUser))).Methods("POST")
 	myRouter.Handle("/users", middleware.EnsureValidToken()(http.HandlerFunc(returnAllUsers)))
 	myRouter.Handle("/users/{userId}", middleware.EnsureValidToken()(http.HandlerFunc(updateUser))).Methods("PUT")
