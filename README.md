@@ -5,7 +5,9 @@
 
 ### up
 ```
-docker-compose up -d
+# docker-compose logs -f を見てある程度ログが落ち着くのを待つ
+docker-compose up -d db
+docker-compose up -d app
 ```
 
 ### exec
