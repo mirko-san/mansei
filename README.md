@@ -14,6 +14,10 @@ docker-compose up -d app
 ```
 # NOT bash
 docker-compose exec db sh
+
+# in db shell
+# mysql command
+mysql -uroot -p${MYSQL_ROOT_PASSWORD}
 ```
 
 ```
