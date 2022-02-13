@@ -7,3 +7,5 @@ RUN mkdir -p /go/src/app/src
 WORKDIR /go/src/app/src
 
 COPY ./src/ /go/src/app/src
+
+CMD ["go", "run", "main.go"]

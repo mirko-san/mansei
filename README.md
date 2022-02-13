@@ -5,17 +5,24 @@
 
 ### up
 ```
-docker-compose up -d
+# docker-compose logs -f を見てある程度ログが落ち着くのを待つ
+docker-compose up -d db
+docker-compose up -d app
 ```
 
 ### exec
 ```
 # NOT bash
 docker-compose exec db sh
+
+# in db shell
+# mysql command
+mysql -uroot -p${MYSQL_ROOT_PASSWORD}
 ```
 
 ```
-docker-compose exec app go run main.go
+# NOT bash
+docker-compose exec app bash
 ```
 
 ### stop
@@ -29,20 +36,31 @@ docker-compose down
 ```
 
 ### use app
-```
-# add user
-curl -X POST http:/localhost:10000/users -d '{ "name": "Create test name", "email": "Create test email"}'
-curl -X PUT http:/localhost:10000/users/0 -d '{ "name": "Put test name", "email": "Put test email"}'
-```
 
-get ACCESS_TOKEN
+#### get ACCESS_TOKEN
 ```
 curl http:/localhost:10000/auth
 ```
 
-use Bearer token
+#### use Bearer token and get users
 ```
 curl --request GET \
 --url http:/localhost:10000/users \
+--header 'authorization: Bearer ACCESS_TOKEN'
+```
+
+#### use Bearer token and add user
+```
+curl -X POST \
+--url http:/localhost:10000/users \
+-d '{ "name": "Create test name", "email": "Create test email"} \
+--header 'authorization: Bearer ACCESS_TOKEN'
+```
+
+#### use Bearer token and update user
+```
+curl -X POST \
+--url http:/localhost:10000/users/0 \
+-d '{ "name": "Put test name", "email": "Put test email"}' \
 --header 'authorization: Bearer ACCESS_TOKEN'
 ```
