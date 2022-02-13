@@ -17,7 +17,8 @@ docker-compose exec db sh
 ```
 
 ```
-docker-compose exec app go run main.go
+# NOT bash
+docker-compose exec app bash
 ```
 
 ### stop
